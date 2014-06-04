@@ -2847,3 +2847,37 @@ test('test request timeout option', function(t) {
     t.end();
   });
 });
+
+test('done fails when specified request header is missing', function(t) {
+  scope = nock('http://example.com', {
+    reqheaders: {
+      "X-App-Token": "apptoken",
+      "X-Auth-Token": "apptoken"
+    }
+  })
+  .post('/resource')
+  .reply(200, { status: "ok" });
+
+  mikealRequest({
+    method: 'POST',
+    uri: 'http://example.com/resource',
+    headers: {
+      "X-App-Token": "apptoken"
+    }
+  }, function(err, res, body) {
+
+    t.type(err, 'null');
+
+    var doneFails = false;
+
+    try {
+      scope.done();
+    } catch(err) {
+      doneFails = true;
+    }
+    t.ok(doneFails);
+
+    t.equal(res.statusCode, 200);
+    t.end();
+  });
+})
